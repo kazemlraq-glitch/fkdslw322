@@ -55,12 +55,20 @@ async function saveCustomer() {
     document.getElementById('new-customer-name').value = '';
     document.getElementById('new-customer-phone').value = '';
 
-    // محاولة الإرسال للسيرفر
+    // محاولة الإرسال للسيرفر (تم التعديل ليدعم الجدول المرن)
     if (navigator.onLine) {
-        const { data, error } = await supabase.from('customers').insert([{ name: name, phone: phone }]);
+        // نرسل البيانات داخل حقل data ونضيف لها نوع (type) لتمييزها
+        const payload = { type: 'customer', name: name, phone: phone };
+        
+        const { error } = await supabase
+            .from('dynamic_debts') // اسم الجدول الجديد
+            .insert([{ data: payload }]); // البيانات توضع داخل عمود data
+
         if (!error) {
             newCustomer.synced = true;
             localStorage.setItem('customers', JSON.stringify(customers));
+        } else {
+            console.error('Supabase Error:', error);
         }
     }
 }
@@ -119,11 +127,23 @@ async function addSale() {
     
     renderDebts();
 
-    // محاولة المزامنة
+    // محاولة المزامنة (تم التعديل ليدعم الجدول المرن)
     if (navigator.onLine) {
-        await supabase.from('debts').insert([
-            { customer_name: customerName, item: item, amount: amount, phone: phone }
-        ]);
+        // نرسل البيانات داخل حقل data
+        const payload = { 
+            type: 'debt', 
+            customer_name: customerName, 
+            item: item, 
+            amount: amount, 
+            phone: phone,
+            date: newDebt.date
+        };
+
+        const { error } = await supabase
+            .from('dynamic_debts') // اسم الجدول الجديد
+            .insert([{ data: payload }]); // البيانات توضع داخل عمود data
+            
+        if (error) console.error('Supabase Error:', error);
     }
 }
 
@@ -131,7 +151,7 @@ function renderDebts() {
     const list = document.getElementById('debts-list');
     list.innerHTML = '';
     
-    // تجميع الديون حسب الزبون (اختياري، هنا سنعرضها كقائمة)
+    // تجميع الديون حسب الزبون
     debts.forEach(d => {
         const div = document.createElement('div');
         div.className = 'glass-card';
@@ -171,7 +191,5 @@ function shareOnWhatsApp(name, amount, item, phone) {
 // --- المزامنة الخلفية (Sync) ---
 async function syncData() {
     if (!navigator.onLine) return;
-    console.log('جاري المزامنة...');
-    // هنا يمكن إضافة كود متقدم لمزامنة البيانات غير المرسلة المخزنة محلياً
-    // (Local -> Supabase) والعكس
+    console.log('جاري المزامنة مع الجدول المرن...');
 }
