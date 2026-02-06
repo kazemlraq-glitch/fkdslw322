@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق الديون - معرض كاظم البهادلي</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div id="welcome-screen">
+        <div class="welcome-content">
+            <h1>معرض كاظم البهادلي</h1>
+            <p>جارٍ التحميل...</p>
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
+        <header class="glass-header">
+            <h2 id="header-title">معرض كاظم البهادلي</h2>
+        </header>
+
+        <main>
+            <section id="tab-sales" class="tab-content active">
+                <h3>تسجيل بيع جديد</h3>
+                <div class="glass-card">
+                    <select id="sale-customer-select" class="glass-input">
+                        <option value="">اختر الزبون</option>
+                    </select>
+                    <input type="text" id="sale-item" placeholder="اسم المادة" class="glass-input">
+                    <input type="number" id="sale-amount" placeholder="السعر" class="glass-input">
+                    <button onclick="addSale()" class="glass-btn primary">حفظ البيع</button>
+                </div>
+            </section>
+
+            <section id="tab-debts" class="tab-content">
+                <h3>قائمة الديون</h3>
+                <div id="debts-list" class="list-container">
+                    </div>
+            </section>
+
+            <section id="tab-customers" class="tab-content">
+                <div class="top-actions">
+                    <button onclick="toggleModal('add-customer-modal')" class="glass-btn action">+ إضافة زبون</button>
+                </div>
+                <h3>الزبائن</h3>
+                <div id="customers-list" class="list-container">
+                    </div>
+            </section>
+        </main>
+
+        <nav class="bottom-nav glass-nav">
+            <button onclick="switchTab('tab-customers')" class="nav-item">
+                <span>👥</span> الزبائن
+            </button>
+            <button onclick="switchTab('tab-sales')" class="nav-item active">
+                <span>🏠</span> البيع
+            </button>
+            <button onclick="switchTab('tab-debts')" class="nav-item">
+                <span>💰</span> الديون
+            </button>
+        </nav>
+    </div>
+
+    <div id="add-customer-modal" class="modal">
+        <div class="modal-content glass-card">
+            <h3>زبون جديد</h3>
+            <input type="text" id="new-customer-name" placeholder="اسم الزبون" class="glass-input">
+            <input type="tel" id="new-customer-phone" placeholder="رقم الهاتف (مع مفتاح الدولة)" class="glass-input">
+            <div class="modal-actions">
+                <button onclick="saveCustomer()" class="glass-btn primary">حفظ</button>
+                <button onclick="toggleModal('add-customer-modal')" class="glass-btn danger">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="supabase_config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // تسجيل Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log('Service Worker Registered'));
+        }
+    </script>
+</body>
+</html>
