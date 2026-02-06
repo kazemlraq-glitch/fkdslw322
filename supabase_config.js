@@ -1,7 +1,7 @@
 // supabase_config.js
 // استبدل الروابط أدناه بروابط مشروعك الخاص لكل عميل
-const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
-const SUPABASE_KEY = "YOUR_ANON_KEY";
+const SUPABASE_URL = "https://qvfvdystksqzmzugddvj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_C8M1nnjNS5T6cp9ImtoE1A_HQPGCw2i";
 
 // تهيئة العميل (يجب تضمين مكتبة supabase في الـ index.html)
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
