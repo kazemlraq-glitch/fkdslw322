@@ -55,20 +55,20 @@ async function saveCustomer() {
     document.getElementById('new-customer-name').value = '';
     document.getElementById('new-customer-phone').value = '';
 
-    // محاولة الإرسال للسيرفر (تم التعديل ليدعم الجدول المرن)
+    // 🔴 التعديل هنا: الإرسال للجدول المرن dynamic_debts
     if (navigator.onLine) {
-        // نرسل البيانات داخل حقل data ونضيف لها نوع (type) لتمييزها
+        // نضع البيانات داخل حقل اسمه data
         const payload = { type: 'customer', name: name, phone: phone };
         
         const { error } = await supabase
             .from('dynamic_debts') // اسم الجدول الجديد
-            .insert([{ data: payload }]); // البيانات توضع داخل عمود data
+            .insert([{ data: payload }]); // نرسل البيانات للحقل السحري
 
         if (!error) {
             newCustomer.synced = true;
             localStorage.setItem('customers', JSON.stringify(customers));
         } else {
-            console.error('Supabase Error:', error);
+            console.error('خطأ في Supabase:', error);
         }
     }
 }
@@ -89,7 +89,7 @@ function updateCustomerSelect() {
     select.innerHTML = '<option value="">اختر الزبون</option>';
     customers.forEach(c => {
         const option = document.createElement('option');
-        option.value = c.name; // نستخدم الاسم للتبسيط
+        option.value = c.name; 
         option.textContent = c.name;
         select.appendChild(option);
     });
@@ -127,9 +127,8 @@ async function addSale() {
     
     renderDebts();
 
-    // محاولة المزامنة (تم التعديل ليدعم الجدول المرن)
+    // 🔴 التعديل هنا: الإرسال للجدول المرن dynamic_debts
     if (navigator.onLine) {
-        // نرسل البيانات داخل حقل data
         const payload = { 
             type: 'debt', 
             customer_name: customerName, 
@@ -141,9 +140,9 @@ async function addSale() {
 
         const { error } = await supabase
             .from('dynamic_debts') // اسم الجدول الجديد
-            .insert([{ data: payload }]); // البيانات توضع داخل عمود data
+            .insert([{ data: payload }]); // نرسل البيانات للحقل السحري
             
-        if (error) console.error('Supabase Error:', error);
+        if (error) console.error('خطأ في Supabase:', error);
     }
 }
 
@@ -151,7 +150,6 @@ function renderDebts() {
     const list = document.getElementById('debts-list');
     list.innerHTML = '';
     
-    // تجميع الديون حسب الزبون
     debts.forEach(d => {
         const div = document.createElement('div');
         div.className = 'glass-card';
@@ -191,5 +189,5 @@ function shareOnWhatsApp(name, amount, item, phone) {
 // --- المزامنة الخلفية (Sync) ---
 async function syncData() {
     if (!navigator.onLine) return;
-    console.log('جاري المزامنة مع الجدول المرن...');
+    console.log('جاري المزامنة مع النظام المرن...');
 }
