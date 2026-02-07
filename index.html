@@ -101,7 +101,9 @@
     <div id="add-customer-modal" class="modal">
         <div class="modal-content glass-card">
             <h3 id="modal-title">زبون جديد</h3>
-            <input type="hidden" id="customer-id-hidden"> <input type="text" id="new-customer-name" placeholder="اسم الزبون" class="glass-input">
+            <input type="hidden" id="customer-id-hidden"> 
+            
+            <input type="text" id="new-customer-name" placeholder="اسم الزبون" class="glass-input">
             
             <div class="phone-input-group">
                 <span class="country-code" dir="ltr">+964</span>
@@ -111,6 +113,27 @@
             <div class="modal-actions">
                 <button onclick="saveCustomer()" class="glass-btn primary" id="save-customer-btn">حفظ</button>
                 <button onclick="toggleModal('add-customer-modal')" class="glass-btn danger">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customer-details-modal" class="modal">
+        <div class="modal-content glass-card" style="max-width: 500px;">
+            <h3 id="details-name" style="color: #ff9f43; margin-bottom: 5px;"></h3>
+            <p id="details-phone" style="font-size: 0.9em; opacity: 0.8; margin-bottom: 15px;"></p>
+            
+            <div class="glass-card" style="background: rgba(0,0,0,0.2); padding: 10px; margin-bottom: 15px;">
+                <h4 style="margin-bottom: 5px;">💰 مجموع الديون المتبقية:</h4>
+                <span id="details-total" style="font-size: 1.5em; font-weight: bold; color: #2ecc71;"></span>
+            </div>
+
+            <h4 style="margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">سجل المعاملات:</h4>
+            <div id="details-transactions" class="transactions-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">
+                </div>
+
+            <div class="modal-actions" style="flex-direction: column; gap: 10px;">
+                <button id="share-statement-btn" class="glass-btn whatsapp">📤 مشاركة كشف الحساب (واتساب)</button>
+                <button onclick="toggleModal('customer-details-modal')" class="glass-btn danger">إغلاق</button>
             </div>
         </div>
     </div>
