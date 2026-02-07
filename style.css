@@ -27,7 +27,6 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    /* تمت إزالة الأنيميشن التلقائي هنا، سيتم التحكم به عبر JS للقفل */
 }
 
 .welcome-content { text-align: center; animation: zoomIn 1.5s ease; }
@@ -138,7 +137,7 @@ textarea.glass-input {
 /* القوائم */
 .list-item {
     display: flex;
-    flex-direction: column; /* تعديل لعرض التفاصيل عمودياً */
+    flex-direction: column;
     padding: 15px;
     border-bottom: 1px solid var(--glass-border);
 }
@@ -155,6 +154,26 @@ textarea.glass-input {
     background: rgba(0,0,0,0.2);
     padding: 5px;
     border-radius: 5px;
+}
+
+/* تفاصيل المعاملات في المودال */
+.transaction-item {
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--primary);
+}
+.transaction-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.transaction-date {
+    font-size: 0.75em;
+    color: #ccc;
+    text-align: left;
 }
 
 /* الناف بار السفلي */
