@@ -151,7 +151,7 @@ async function saveCustomer() {
     updateCustomerSelect();
     toggleModal('add-customer-modal');
 
-    // إرسال لـ Supabase (قاعدة البيانات تعمل هنا)
+    // إرسال لـ Supabase
     if (navigator.onLine && window.supabase) {
         const payload = { type: 'customer_update', name: name, phone: phone, action: id ? 'edit' : 'create' };
         const { error } = await supabase.from('dynamic_debts').insert([{ data: payload }]);
@@ -211,13 +211,13 @@ function updateCustomerSelect() {
     });
 }
 
-// --- جديد: عرض تفاصيل الزبون (كشف الحساب) ---
+// --- عرض تفاصيل الزبون (كشف الحساب) ---
 function showCustomerDetails(customerId) {
     const customer = customers.find(c => c.id === customerId);
     if (!customer) return;
 
     // تصفية ديون هذا الزبون
-    const customerDebts = debts.filter(d => d.customer_name === customer.name).reverse(); // الأحدث أولاً
+    const customerDebts = debts.filter(d => d.customer_name === customer.name).reverse(); 
     const totalDebt = customerDebts.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
 
     // تعبئة البيانات في المودال
@@ -253,7 +253,10 @@ function showCustomerDetails(customerId) {
 }
 
 function shareStatement(customer, total, transactionList) {
-    const fullPhone = '964' + customer.phone.replace(/^0+/, '');
+    // جلب الرقم وتنظيفه تماماً من أي مسافات أو رموز
+    // إذا كان الرقم المدخل مثلا "0770 123 456" سيصبح "770123456"
+    const cleanPhone = customer.phone.toString().replace(/\D/g, '').replace(/^0+/, '');
+    const fullPhone = '964' + cleanPhone;
     
     let message = `*كشف حساب - معرض كاظم البهادلي*\n`;
     message += `الزبون: ${customer.name}\n`;
@@ -304,7 +307,6 @@ async function addSale() {
     renderDebts();
     renderCustomers();
 
-    // إرسال لـ Supabase (قاعدة البيانات تعمل هنا)
     if (navigator.onLine && window.supabase) {
         const payload = { 
             type: 'debt', 
@@ -345,11 +347,19 @@ function renderDebts() {
     });
 }
 
-// --- ميزة الواتساب (للوصل المفرد) ---
-function shareOnWhatsApp(name, amount, item, phone) {
-    if (!phone) return showNotification('لا يوجد رقم هاتف لهذا الزبون', 'error');
+// --- ميزة الواتساب (للوصل المفرد - تم التعديل) ---
+function shareOnWhatsApp(name, amount, item, phoneParam) {
+    // التعديل: البحث عن الزبون بالاسم لجلب رقمه الحالي من السجلات مباشرة
+    // هذا يضمن أننا نستخدم الرقم الصحيح حتى لو كان السجل قديماً
+    const customer = customers.find(c => c.name === name);
+    // إذا وجدنا الزبون نأخذ رقمه، وإلا نستخدم الرقم الممرر
+    const phoneToUse = customer ? customer.phone : phoneParam;
+
+    if (!phoneToUse) return showNotification('لا يوجد رقم هاتف لهذا الزبون', 'error');
     
-    const fullPhone = '964' + phone.replace(/^0+/, ''); 
+    // التعديل: تنظيف الرقم من أي شيء ليس رقماً (مثل المسافات) وحذف الصفر في البداية
+    const cleanPhone = phoneToUse.toString().replace(/\D/g, '').replace(/^0+/, '');
+    const fullPhone = '964' + cleanPhone; 
 
     const message = `
     *معرض كاظم البهادلي*
