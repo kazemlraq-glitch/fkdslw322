@@ -28,7 +28,6 @@ function checkAppPassword() {
         showNotification('تم تسجيل الدخول بنجاح', 'success');
     } else {
         showNotification('كلمة المرور خاطئة!', 'error');
-        // تفريغ الحقل
         document.getElementById('app-password-input').value = '';
     }
 }
@@ -52,7 +51,7 @@ function changeAppPassword() {
     }
 }
 
-// --- نظام الإشعارات (بديل الـ alert) ---
+// --- نظام الإشعارات ---
 function showNotification(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -67,7 +66,6 @@ function showNotification(message, type = 'info') {
     
     container.appendChild(toast);
     
-    // إزالة العنصر من DOM بعد انتهاء الأنيميشن
     setTimeout(() => {
         toast.remove();
     }, 3000);
@@ -101,8 +99,6 @@ function openCustomerModal(isEdit = false, customerId = null) {
             modalTitle.textContent = "تعديل بيانات الزبون";
             saveBtn.textContent = "تحديث البيانات";
             nameInput.value = cust.name;
-            // استخراج الرقم بدون الكود 
-            // نفترض أنك خزنت الرقم كاملاً، هنا سنعرضه كما هو أو نعالجه
             phoneInput.value = cust.phone; 
             idInput.value = cust.id;
         }
@@ -126,10 +122,6 @@ async function saveCustomer() {
 
     if (!name || !phoneInput) return showNotification('يرجى ملء كافة الحقول', 'error');
 
-    // دمج الكود مع الرقم (إذا لم يكن موجوداً مسبقاً)
-    // المستخدم يدخل 77xxxxxx -> النتيجة +96477xxxxxx
-    // لكن للعرض في الجدول سنحتفظ به كما أدخله المستخدم أو نضيف الكود، حسب رغبتك.
-    // سأقوم بحفظه كما هو لتسهيل التعديل، وعند الوتساب أضيف الكود.
     const phone = phoneInput; 
 
     if (id) {
@@ -155,13 +147,12 @@ async function saveCustomer() {
 
     localStorage.setItem('customers', JSON.stringify(customers));
     
-    // تحديث الواجهة
     renderCustomers();
     updateCustomerSelect();
     toggleModal('add-customer-modal');
 
-    // إرسال لـ Supabase (للإضافة أو التعديل نرسل سجل جديد كـ Log حالياً لعدم تعقيد الكود)
-    if (navigator.onLine) {
+    // إرسال لـ Supabase (قاعدة البيانات تعمل هنا)
+    if (navigator.onLine && window.supabase) {
         const payload = { type: 'customer_update', name: name, phone: phone, action: id ? 'edit' : 'create' };
         const { error } = await supabase.from('dynamic_debts').insert([{ data: payload }]);
         if (error) console.error('Supabase Error:', error);
@@ -182,7 +173,7 @@ function renderCustomers() {
     const list = document.getElementById('customers-list');
     list.innerHTML = '';
     customers.forEach(c => {
-        // حساب إجمالي الدين لهذا الزبون
+        // حساب إجمالي الدين
         const totalDebt = debts
             .filter(d => d.customer_name === c.name)
             .reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
@@ -191,7 +182,10 @@ function renderCustomers() {
         div.className = 'glass-card list-item';
         div.innerHTML = `
             <div class="customer-header">
-                <strong>${c.name}</strong>
+                <div onclick="showCustomerDetails(${c.id})" style="cursor: pointer; flex-grow: 1;">
+                    <strong style="border-bottom: 1px dotted #ccc;">${c.name}</strong>
+                    <div style="font-size:0.8em; color:#bbb; margin-top:2px;">(اضغط للعرض)</div>
+                </div>
                 <span dir="ltr">+964 ${c.phone}</span>
             </div>
             <div class="customer-stats">
@@ -217,11 +211,71 @@ function updateCustomerSelect() {
     });
 }
 
+// --- جديد: عرض تفاصيل الزبون (كشف الحساب) ---
+function showCustomerDetails(customerId) {
+    const customer = customers.find(c => c.id === customerId);
+    if (!customer) return;
+
+    // تصفية ديون هذا الزبون
+    const customerDebts = debts.filter(d => d.customer_name === customer.name).reverse(); // الأحدث أولاً
+    const totalDebt = customerDebts.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
+
+    // تعبئة البيانات في المودال
+    document.getElementById('details-name').textContent = customer.name;
+    document.getElementById('details-phone').textContent = '+964 ' + customer.phone;
+    document.getElementById('details-total').textContent = totalDebt.toLocaleString() + ' د.ع';
+
+    const listContainer = document.getElementById('details-transactions');
+    listContainer.innerHTML = '';
+
+    if (customerDebts.length === 0) {
+        listContainer.innerHTML = '<p style="text-align:center; color:#999;">لا توجد ديون مسجلة.</p>';
+    } else {
+        customerDebts.forEach(d => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'transaction-item';
+            itemDiv.innerHTML = `
+                <div class="transaction-header">
+                    <span>${d.item.split('\n')[0]}...</span>
+                    <span style="color:#ff9f43">${d.amount}</span>
+                </div>
+                <div class="transaction-date">${d.date}</div>
+            `;
+            listContainer.appendChild(itemDiv);
+        });
+    }
+
+    // إعداد زر المشاركة
+    const shareBtn = document.getElementById('share-statement-btn');
+    shareBtn.onclick = () => shareStatement(customer, totalDebt, customerDebts);
+
+    toggleModal('customer-details-modal');
+}
+
+function shareStatement(customer, total, transactionList) {
+    const fullPhone = '964' + customer.phone.replace(/^0+/, '');
+    
+    let message = `*كشف حساب - معرض كاظم البهادلي*\n`;
+    message += `الزبون: ${customer.name}\n`;
+    message += `------------------------\n`;
+    
+    transactionList.forEach(t => {
+        message += `🔹 ${t.item.replace(/\n/g, ' ')} (${t.amount})\n`;
+    });
+    
+    message += `------------------------\n`;
+    message += `💰 *المجموع الكلي: ${total} د.ع*\n`;
+    
+    const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+}
+
+
 // --- قسم المبيعات والديون ---
 
 async function addSale() {
     const customerName = document.getElementById('sale-customer-select').value;
-    const item = document.getElementById('sale-item').value; // الآن هو textarea
+    const item = document.getElementById('sale-item').value;
     const amount = document.getElementById('sale-amount').value;
 
     if (!customerName || !item || !amount) return showNotification('أكمل البيانات المطلوبة', 'error');
@@ -244,14 +298,14 @@ async function addSale() {
 
     showNotification('تم حفظ البيع بنجاح', 'success');
     
-    // تفريغ الحقول
     document.getElementById('sale-item').value = '';
     document.getElementById('sale-amount').value = '';
     
     renderDebts();
-    renderCustomers(); // لتحديث مجموع الديون
+    renderCustomers();
 
-    if (navigator.onLine) {
+    // إرسال لـ Supabase (قاعدة البيانات تعمل هنا)
+    if (navigator.onLine && window.supabase) {
         const payload = { 
             type: 'debt', 
             customer_name: customerName, 
@@ -269,11 +323,9 @@ function renderDebts() {
     const list = document.getElementById('debts-list');
     list.innerHTML = '';
     
-    // ترتيب الديون من الأحدث للأقدم
     const sortedDebts = [...debts].reverse();
 
     sortedDebts.forEach(d => {
-        // تحويل أسطر المادة إلى تنسيق HTML
         const formattedItem = d.item.replace(/\n/g, '<br>');
 
         const div = document.createElement('div');
@@ -293,12 +345,11 @@ function renderDebts() {
     });
 }
 
-// --- ميزة الواتساب ---
+// --- ميزة الواتساب (للوصل المفرد) ---
 function shareOnWhatsApp(name, amount, item, phone) {
     if (!phone) return showNotification('لا يوجد رقم هاتف لهذا الزبون', 'error');
     
-    // إضافة كود الدولة العراقية
-    const fullPhone = '964' + phone.replace(/^0+/, ''); // إزالة الصفر في البداية إن وجد
+    const fullPhone = '964' + phone.replace(/^0+/, ''); 
 
     const message = `
     *معرض كاظم البهادلي*
