@@ -10,6 +10,17 @@
 </head>
 <body>
 
+    <div id="toast-container"></div>
+
+    <div id="lock-screen" style="display: none;">
+        <div class="lock-content glass-card">
+            <h2>🔒 قفل التطبيق</h2>
+            <p>أدخل كلمة المرور للمتابعة</p>
+            <input type="password" id="app-password-input" class="glass-input" placeholder="كلمة المرور">
+            <button onclick="checkAppPassword()" class="glass-btn primary">دخول</button>
+        </div>
+    </div>
+
     <div id="welcome-screen">
         <div class="welcome-content">
             <h1>معرض كاظم البهادلي</h1>
@@ -29,8 +40,8 @@
                     <select id="sale-customer-select" class="glass-input">
                         <option value="">اختر الزبون</option>
                     </select>
-                    <input type="text" id="sale-item" placeholder="اسم المادة" class="glass-input">
-                    <input type="number" id="sale-amount" placeholder="السعر" class="glass-input">
+                    <textarea id="sale-item" placeholder="اسم المادة (اضغط Enter لسطر جديد)" class="glass-input" rows="3"></textarea>
+                    <input type="number" id="sale-amount" placeholder="السعر الكلي" class="glass-input">
                     <button onclick="addSale()" class="glass-btn primary">حفظ البيع</button>
                 </div>
             </section>
@@ -43,11 +54,31 @@
 
             <section id="tab-customers" class="tab-content">
                 <div class="top-actions">
-                    <button onclick="toggleModal('add-customer-modal')" class="glass-btn action">+ إضافة زبون</button>
+                    <button onclick="openCustomerModal()" class="glass-btn action">+ إضافة زبون</button>
                 </div>
                 <h3>الزبائن</h3>
                 <div id="customers-list" class="list-container">
                     </div>
+            </section>
+
+            <section id="tab-settings" class="tab-content">
+                <h3>الإعدادات</h3>
+                
+                <div class="glass-card">
+                    <h4>🔐 الأمان</h4>
+                    <input type="password" id="current-pass" placeholder="كلمة المرور الحالية" class="glass-input">
+                    <input type="password" id="new-pass" placeholder="كلمة المرور الجديدة" class="glass-input">
+                    <button onclick="changeAppPassword()" class="glass-btn primary">تغيير كلمة المرور</button>
+                </div>
+
+                <div class="glass-card">
+                    <h4>💾 النسخ الاحتياطي</h4>
+                    <button onclick="downloadBackup()" class="glass-btn action">تنزيل نسخة احتياطية (ملف)</button>
+                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.2); margin: 10px 0;">
+                    <p style="font-size: 0.8em; margin-bottom: 5px;">استعادة نسخة:</p>
+                    <input type="file" id="backup-file" class="glass-input" accept=".json">
+                    <button onclick="uploadBackup()" class="glass-btn whatsapp">رفع واستعادة النسخة</button>
+                </div>
             </section>
         </main>
 
@@ -61,16 +92,24 @@
             <button onclick="switchTab('tab-debts')" class="nav-item">
                 <span>💰</span> الديون
             </button>
+            <button onclick="switchTab('tab-settings')" class="nav-item">
+                <span>⚙️</span> الإعدادات
+            </button>
         </nav>
     </div>
 
     <div id="add-customer-modal" class="modal">
         <div class="modal-content glass-card">
-            <h3>زبون جديد</h3>
-            <input type="text" id="new-customer-name" placeholder="اسم الزبون" class="glass-input">
-            <input type="tel" id="new-customer-phone" placeholder="رقم الهاتف (مع مفتاح الدولة)" class="glass-input">
+            <h3 id="modal-title">زبون جديد</h3>
+            <input type="hidden" id="customer-id-hidden"> <input type="text" id="new-customer-name" placeholder="اسم الزبون" class="glass-input">
+            
+            <div class="phone-input-group">
+                <span class="country-code" dir="ltr">+964</span>
+                <input type="tel" id="new-customer-phone" placeholder="77xxxxxxxxx" class="glass-input" style="direction: ltr; text-align: left;">
+            </div>
+
             <div class="modal-actions">
-                <button onclick="saveCustomer()" class="glass-btn primary">حفظ</button>
+                <button onclick="saveCustomer()" class="glass-btn primary" id="save-customer-btn">حفظ</button>
                 <button onclick="toggleModal('add-customer-modal')" class="glass-btn danger">إلغاء</button>
             </div>
         </div>
